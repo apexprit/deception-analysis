@@ -15,6 +15,9 @@ A comprehensive system for detecting deception in video interviews using facial 
 3. **Wait for installation** (~2-3 minutes)
 4. **Use the Gradio interface** that appears at the bottom
 
+> [!TIP]
+> **Working locally?** Make sure to `git push` your latest changes to GitHub before running in Colab, as the notebook clones the repository directly from the `main` branch.
+
 The notebook will:
 - ✅ Install all dependencies automatically
 - ✅ Generate realistic synthetic deception data
