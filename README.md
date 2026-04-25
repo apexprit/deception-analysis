@@ -6,7 +6,7 @@ A comprehensive system for detecting deception in video interviews using facial 
 
 **Run everything in the cloud with one click:**
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/your-username/deception-analysis/blob/main/colab_deception_analysis.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/apexprit/deception-analysis/blob/main/colab_deception_analysis.ipynb)
 
 ### Steps to Run in Google Colab:
 
@@ -106,7 +106,7 @@ If you want to run locally:
 
 ```bash
 # Clone repository
-git clone https://github.com/your-username/deception-analysis.git
+git clone https://github.com/apexprit/deception-analysis.git
 cd deception-analysis
 
 # Install dependencies
