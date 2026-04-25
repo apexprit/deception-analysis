@@ -170,6 +170,10 @@ class DeceptionClassifier:
         if can_calibrate:
             self.calibrated_model.fit(X_scaled, y, sample_weight=sample_weight)
 
+        # Research rationale: setting is_fitted_ prior to metric computation allows
+        # reuse of internal predict/predict_proba methods for training performance tracking.
+        self.is_fitted_ = True
+
         train_preds = self.predict(X)
         train_probs = self.predict_proba(X)
 
@@ -215,7 +219,6 @@ class DeceptionClassifier:
             metrics["cv_accuracy_std"] = float("nan")
 
         self.training_metadata_ = metrics
-        self.is_fitted_ = True
         return metrics
 
     def predict(self, X: np.ndarray) -> np.ndarray:
