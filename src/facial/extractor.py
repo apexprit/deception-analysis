@@ -58,29 +58,37 @@ class FacialFeatureExtractor:
     ]
 
     def __init__(self, config: Optional[FeatureConfig] = None):
-        """Initialize the MediaPipe Face Mesh extractor."""
+        """Initialize the MediaPipe Face Mesh extractor.
+        
+        Gracefully handles missing MediaPipe dependencies by setting an 'available' flag.
+        """
 
         self.config = config or get_default_config().features
-        solutions = self._get_mp_solutions()
-        self.mp_face_mesh = solutions.face_mesh
-        self.face_mesh = self.mp_face_mesh.FaceMesh(
-            static_image_mode=False,
-            max_num_faces=1,
-            refine_landmarks=True,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5,
-        )
+        self.available = False
+        self.face_mesh = None
+        
+        try:
+            solutions = self._get_mp_solutions()
+            self.mp_face_mesh = solutions.face_mesh
+            self.face_mesh = self.mp_face_mesh.FaceMesh(
+                static_image_mode=False,
+                max_num_faces=1,
+                refine_landmarks=True,
+                min_detection_confidence=0.5,
+                min_tracking_confidence=0.5,
+            )
+            self.available = True
+        except (ImportError, AttributeError) as e:
+            print(f"\u26a0\ufe0f WARNING: Facial features disabled. MediaPipe error: {e}")
 
     @staticmethod
     def _distance(point_a: np.ndarray, point_b: np.ndarray) -> float:
         """Return Euclidean distance between two landmark points."""
-
         return float(np.linalg.norm(point_a[:3] - point_b[:3]))
 
     @staticmethod
     def _face_diagonal(landmarks: np.ndarray) -> float:
         """Return face bounding-box diagonal for scale normalization."""
-
         if landmarks.size == 0:
             return 1.0
         mins = np.nanmin(landmarks[:, :2], axis=0)
@@ -91,7 +99,6 @@ class FacialFeatureExtractor:
     @staticmethod
     def _safe_ratio(numerator: float, denominator: float) -> float:
         """Return a bounded ratio while avoiding division by zero."""
-
         if denominator <= 1e-8 or not np.isfinite(denominator):
             return 0.0
         value = numerator / denominator
@@ -100,7 +107,7 @@ class FacialFeatureExtractor:
     def _extract_landmarks(self, frame: np.ndarray) -> Optional[np.ndarray]:
         """Run Face Mesh on a BGR frame and return normalized landmarks."""
 
-        if frame is None or frame.size == 0:
+        if not self.available or self.face_mesh is None or frame is None or frame.size == 0:
             return None
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         if float(cv2.Laplacian(gray, cv2.CV_64F).var()) < 5.0:
