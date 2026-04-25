@@ -174,8 +174,8 @@ class DeceptionClassifier:
         # reuse of internal predict/predict_proba methods for training performance tracking.
         self.is_fitted_ = True
 
-        train_preds = self.predict(X)
-        train_probs = self.predict_proba(X)
+        train_preds = self.predict(X, check_fitted=False)
+        train_probs = self.predict_proba(X, check_fitted=False)
 
         metrics: Dict[str, float] = {
             "train_accuracy": float(accuracy_score(y, train_preds)),
@@ -221,10 +221,15 @@ class DeceptionClassifier:
         self.training_metadata_ = metrics
         return metrics
 
-    def predict(self, X: np.ndarray) -> np.ndarray:
-        """Predict binary deception labels for input features."""
+    def predict(self, X: np.ndarray, check_fitted: bool = True) -> np.ndarray:
+        """Predict binary deception labels for input features.
+        
+        Args:
+            X: Input feature matrix.
+            check_fitted: Whether to verify that the model is fitted.
+        """
 
-        if not self.is_fitted_:
+        if check_fitted and not self.is_fitted_:
             raise ValueError("Model is not trained. Call train() first.")
 
         X_scaled = self.scaler.transform(np.asarray(X, dtype=np.float64))
@@ -232,14 +237,18 @@ class DeceptionClassifier:
             return self.calibrated_model.predict(X_scaled)
         return self.model.predict(X_scaled)
 
-    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+    def predict_proba(self, X: np.ndarray, check_fitted: bool = True) -> np.ndarray:
         """Predict deception probabilities for input features.
 
+        Args:
+            X: Input feature matrix.
+            check_fitted: Whether to verify that the model is fitted.
+            
         Returns:
             np.ndarray: Probability matrix [truthful_prob, deceptive_prob].
         """
 
-        if not self.is_fitted_:
+        if check_fitted and not self.is_fitted_:
             raise ValueError("Model is not trained. Call train() first.")
 
         X_scaled = self.scaler.transform(np.asarray(X, dtype=np.float64))
@@ -247,10 +256,10 @@ class DeceptionClassifier:
             return self.calibrated_model.predict_proba(X_scaled)
         return self.model.predict_proba(X_scaled)
 
-    def predict_deception_score(self, X: np.ndarray) -> np.ndarray:
+    def predict_deception_score(self, X: np.ndarray, check_fitted: bool = True) -> np.ndarray:
         """Predict scalar deception score in [0, 1] for each sample."""
 
-        proba = self.predict_proba(X)
+        proba = self.predict_proba(X, check_fitted=check_fitted)
         return proba[:, 1]
 
     def get_feature_importance(self) -> pd.DataFrame:
