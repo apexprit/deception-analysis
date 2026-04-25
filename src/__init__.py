@@ -1,6 +1,4 @@
 """Explainable Multimodal Deception Analysis System."""
 
-from .pipeline import DeceptionPipeline
-from .utils.config import AppConfig
-
-__all__ = ['DeceptionPipeline', 'AppConfig']
+# We avoid eager imports of DeceptionPipeline here to prevent side-effects 
+# (like MediaPipe initialization) when only utility modules are needed.

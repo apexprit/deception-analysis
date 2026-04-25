@@ -5,12 +5,6 @@ from __future__ import annotations
 from typing import Dict, List, Optional, Tuple
 
 import cv2
-import mediapipe as mp
-try:
-    import mediapipe.python.solutions.face_mesh as mp_face_mesh
-except (ImportError, AttributeError):
-    mp_face_mesh = mp.solutions.face_mesh
-
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -20,13 +14,23 @@ from src.utils.io import load_video
 
 
 class FacialFeatureExtractor:
-    """Extracts micro-expression features from video using MediaPipe Face Mesh.
+    """Extracts micro-expression features from video using MediaPipe Face Mesh."""
 
-    The extractor converts MediaPipe's 468 three-dimensional face landmarks into
-    scale-invariant behavioral signals that are commonly inspected in deception
-    analysis: eye closure, mouth movement, eyebrow tension, nose movement, and
-    coarse head dynamics.
-    """
+    def _get_mp_solutions(self):
+        """Lazily load mediapipe to avoid global import errors."""
+        try:
+            import mediapipe as mp
+            if not hasattr(mp, 'solutions'):
+                # Try to force-load the solutions attribute which can be missing in some Colab builds
+                import mediapipe.python.solutions as solutions
+                mp.solutions = solutions
+            return mp.solutions
+        except (ImportError, AttributeError) as e:
+            raise ImportError(
+                "MediaPipe 'solutions' module not found. This is common in Google Colab if the "
+                "runtime hasn't been restarted after installation. Please go to 'Runtime' -> "
+                "'Restart session' and try again.\nOriginal error: " + str(e)
+            )
 
     _LEFT_EYE = [33, 160, 158, 133, 153, 144]
     _RIGHT_EYE = [362, 385, 387, 263, 373, 380]
@@ -54,15 +58,11 @@ class FacialFeatureExtractor:
     ]
 
     def __init__(self, config: Optional[FeatureConfig] = None):
-        """Initialize the MediaPipe Face Mesh extractor.
-
-        Args:
-            config: Optional facial feature configuration. When omitted, the
-                default application feature configuration is used.
-        """
+        """Initialize the MediaPipe Face Mesh extractor."""
 
         self.config = config or get_default_config().features
-        self.mp_face_mesh = mp_face_mesh
+        solutions = self._get_mp_solutions()
+        self.mp_face_mesh = solutions.face_mesh
         self.face_mesh = self.mp_face_mesh.FaceMesh(
             static_image_mode=False,
             max_num_faces=1,
