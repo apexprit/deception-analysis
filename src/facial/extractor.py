@@ -6,6 +6,11 @@ from typing import Dict, List, Optional, Tuple
 
 import cv2
 import mediapipe as mp
+try:
+    import mediapipe.python.solutions.face_mesh as mp_face_mesh
+except (ImportError, AttributeError):
+    mp_face_mesh = mp.solutions.face_mesh
+
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -57,7 +62,7 @@ class FacialFeatureExtractor:
         """
 
         self.config = config or get_default_config().features
-        self.mp_face_mesh = mp.solutions.face_mesh
+        self.mp_face_mesh = mp_face_mesh
         self.face_mesh = self.mp_face_mesh.FaceMesh(
             static_image_mode=False,
             max_num_faces=1,
