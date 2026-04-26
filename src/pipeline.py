@@ -222,7 +222,16 @@ class DeceptionPipeline:
             self.logger.info("Generating explanations...")
             if self.classifier.is_fitted_ and X.size > 0:
                 try:
-                    explanation = self.explainer.explain(self.classifier, X)
+                    # Explainer expects a single sample (1, n_features). 
+                    # We use the mean of all frames to explain the overall video prediction.
+                    import numpy as np
+                    X_mean = np.nanmean(X, axis=0, keepdims=True)
+                    explanation = self.explainer.explain_prediction(
+                        X=X_mean,
+                        feature_names=feature_names,
+                        prediction=proba,
+                        subject_id=subject_id
+                    )
                     result["explanation"] = explanation
                 except Exception as e:
                     self.logger.warning(f"Explanation generation failed: {e}")
