@@ -52,7 +52,7 @@ async def startup_event():
 
 @app.post("/analyze")
 async def analyze_video_endpoint(
-    video: UploadFile = File(...),
+    file: UploadFile = File(...),
     subject_id: Optional[str] = Form(None)
 ):
     if not pipeline:
@@ -60,15 +60,15 @@ async def analyze_video_endpoint(
 
     # Create temporary directory for the uploaded video
     temp_dir = tempfile.mkdtemp(prefix="deception_api_")
-    video_path = os.path.join(temp_dir, video.filename)
+    video_path = os.path.join(temp_dir, file.filename)
 
     try:
         # Save uploaded video to disk
         with open(video_path, "wb") as f:
-            content = await video.read()
+            content = await file.read()
             f.write(content)
 
-        logger.info(f"Analyzing video: {video.filename} (Subject: {subject_id})")
+        logger.info(f"Analyzing video: {file.filename} (Subject: {subject_id})")
 
         # Run pipeline
         result = pipeline.analyze_video(
@@ -85,6 +85,7 @@ async def analyze_video_endpoint(
         response_data = {
             "status": "success",
             "prediction": result.get("prediction", "unknown"),
+            "verdict": result.get("prediction", "unknown"), # added for Flutter
             "probability": result.get("deception_probability", 0.5),
             "confidence": result.get("confidence", 0.0),
             "is_deceptive": result.get("prediction") == "deceptive",
@@ -100,8 +101,12 @@ async def analyze_video_endpoint(
 
         # Add SHAP explainability (to draw the Feature Importance chart in Flutter)
         if "explanation" in result:
+            fi = result["explanation"].get("feature_importance", {})
+            top_indicators = [{"feature": k, "impact": v} for k, v in list(fi.items())[:5]]
+            
             response_data["explanation"] = {
-                "feature_importance": result["explanation"].get("feature_importance", {}),
+                "top_indicators": top_indicators,
+                "feature_importance": fi,
                 "behavioral_explanations": result["explanation"].get("behavioral_explanations", {})
             }
 
