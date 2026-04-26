@@ -98,15 +98,23 @@ class DeceptionClassifier:
         }
 
         if feature_columns is None:
-            candidate_cols = [c for c in features_df.columns if c not in excluded_columns]
-            # Research rationale: constraining to numeric-only columns prevents accidental
-            # leakage of identifiers and ensures stable scaling behavior.
-            feature_columns = [
-                c for c in candidate_cols if pd.api.types.is_numeric_dtype(features_df[c])
-            ]
+            if self.is_fitted_ and self.feature_names_ is not None:
+                feature_columns = self.feature_names_
+            else:
+                candidate_cols = [c for c in features_df.columns if c not in excluded_columns]
+                # Research rationale: constraining to numeric-only columns prevents accidental
+                # leakage of identifiers and ensures stable scaling behavior.
+                feature_columns = [
+                    c for c in candidate_cols if pd.api.types.is_numeric_dtype(features_df[c])
+                ]
 
         if not feature_columns:
             return np.empty((len(features_df), 0), dtype=np.float64), []
+
+        missing_cols = set(feature_columns) - set(features_df.columns)
+        if missing_cols:
+            for col in missing_cols:
+                features_df[col] = 0.0
 
         selected = features_df[feature_columns].copy()
         for col in selected.columns:
