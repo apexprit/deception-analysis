@@ -107,7 +107,7 @@ class DeceptionPipeline:
         try:
             # 1. Extract facial features
             self.logger.info("Extracting facial features...")
-            facial_df = self.facial_extractor.extract_features(video_path)
+            facial_df = self.facial_extractor.process_video(video_path)
             result["facial_features"] = facial_df
             metadata["facial_frames"] = len(facial_df)
             self.logger.info(f"Extracted {len(facial_df)} facial frames.")
@@ -123,8 +123,8 @@ class DeceptionPipeline:
                 audio_df = pd.DataFrame()
             else:
                 # Extract audio features
-                audio_df = self.audio_extractor.extract_segments(
-                    str(audio_path), segment_length=2.0
+                audio_df = self.audio_extractor.process_audio_segments(
+                    str(audio_path), segment_duration=2.0
                 )
             result["audio_features"] = audio_df
             metadata["audio_segments"] = len(audio_df)
@@ -361,12 +361,12 @@ class DeceptionPipeline:
         for idx, video_path in enumerate(tqdm(video_paths, desc="Extracting features")):
             try:
                 # Extract facial features
-                facial_df = self.facial_extractor.extract_features(video_path)
+                facial_df = self.facial_extractor.process_video(video_path)
 
                 # Extract audio features
                 with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
                     audio_path = extract_audio_from_video(video_path, tmp.name)
-                    audio_df = self.audio_extractor.extract_segments(str(audio_path), segment_length=2.0)
+                    audio_df = self.audio_extractor.process_audio_segments(str(audio_path), segment_duration=2.0)
 
                 # Fuse
                 aligned_df = self.fusion.align_features(
