@@ -199,9 +199,23 @@ class DeceptionPipeline:
             # 6. Temporal analysis
             self.logger.info("Performing temporal analysis...")
             timestamps = fused_df.get("timestamp", pd.Series(range(len(fused_df))))
-            temporal_result = self.temporal_analyzer.analyze_trajectory(
+            temporal_result = self.temporal_analyzer.analyze(
                 per_frame_probs.values, timestamps.values
             )
+            
+            # Map temporal results for API
+            if isinstance(timestamps, pd.Series):
+                temporal_result["timestamps"] = timestamps.tolist()
+            else:
+                temporal_result["timestamps"] = list(timestamps)
+                
+            if "smoothed_probabilities" in temporal_result:
+                import numpy as np
+                if isinstance(temporal_result["smoothed_probabilities"], np.ndarray):
+                    temporal_result["probability_trajectory"] = temporal_result["smoothed_probabilities"].tolist()
+                else:
+                    temporal_result["probability_trajectory"] = list(temporal_result["smoothed_probabilities"])
+            
             result["temporal_analysis"] = temporal_result
 
             # 7. Generate explanations
