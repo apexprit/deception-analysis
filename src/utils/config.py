@@ -54,6 +54,7 @@ class ProjectConfig:
 class FeatureConfig:
     """Facial and behavioral feature extraction parameters."""
 
+    fps: float = 30.0
     eye_openness_threshold: float = 0.22
     mouth_openness_threshold: float = 0.35
     eyebrow_tension_threshold: float = 0.18
