@@ -84,7 +84,7 @@ def create_pretrained_model(output_dir: str = "./models",
     print(f"   Test samples: {len(X_test)}")
     
     # Train
-    train_result = classifier.train(X_train, y_train)
+    train_result = classifier.train(X_train, y_train, list(features.columns))
     
     # Evaluate
     from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
