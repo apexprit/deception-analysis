@@ -95,7 +95,7 @@ def create_pretrained_model(output_dir: str = "./models",
     test_f1 = f1_score(y_test, y_pred)
     test_auc = roc_auc_score(y_test, y_prob)
     
-    print(f"   Training accuracy: {train_result['accuracy']:.3f}")
+    print(f"   Training accuracy: {train_result.get('train_accuracy', 0):.3f}")
     print(f"   Test accuracy: {test_accuracy:.3f}")
     print(f"   Test F1-score: {test_f1:.3f}")
     print(f"   Test AUC-ROC: {test_auc:.3f}")
@@ -163,8 +163,8 @@ def create_pretrained_model(output_dir: str = "./models",
         'test_samples': len(X_test),
         'n_features': len(features.columns),
         'performance_metrics': {
-            'training_accuracy': float(train_result['accuracy']),
-            'training_f1': float(train_result['f1']),
+            'training_accuracy': float(train_result.get('train_accuracy', 0)),
+            'training_f1': 0.0,  # Not returned by train()
             'test_accuracy': float(test_accuracy),
             'test_f1': float(test_f1),
             'test_auc_roc': float(test_auc)
