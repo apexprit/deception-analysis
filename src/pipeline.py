@@ -173,11 +173,13 @@ class DeceptionPipeline:
                 self.logger.info(f"Applying subject calibration for {subject_id}...")
                 try:
                     # Update baseline with current features
-                    self.calibrator.update_baseline(subject_id, fused_df)
+                    self.calibrator.add_subject_profile(subject_id, fused_df)
                     # Calibrate predictions
-                    calibrated_preds = self.calibrator.calibrate(
-                        per_frame_probs.values, subject_id
-                    )
+                    import numpy as np
+                    calibrated_preds = np.array([
+                        self.calibrator.calibrate_prediction(p, subject_id)
+                        for p in per_frame_probs.values
+                    ])
                     if calibrated_preds is not None:
                         calibrated_proba = float(calibrated_preds.mean())
                         calibrated_pred = (
@@ -404,7 +406,7 @@ class DeceptionPipeline:
                 if subject_mask.any():
                     subject_features = full_df[subject_mask]
                     try:
-                        self.calibrator.update_baseline(subject_id, subject_features)
+                        self.calibrator.add_subject_profile(subject_id, subject_features)
                     except Exception as e:
                         self.logger.warning(f"Failed to update baseline for {subject_id}: {e}")
 

@@ -110,7 +110,7 @@ def create_pretrained_model(output_dir: str = "./models",
         subject_mask = [sid == subject_id for sid in subject_ids]
         if sum(subject_mask) >= 5:  # Need enough samples per subject
             subject_features = features[subject_mask]
-            calibrator.update_baseline(subject_id, subject_features)
+            calibrator.add_subject_profile(subject_id, subject_features)
             subject_profiles[subject_id] = {
                 'n_samples': sum(subject_mask),
                 'baseline_updated': True
@@ -224,7 +224,7 @@ print(f"Probability of deception: {probability:.3f}")
 # If subject ID is known, calibrate
 subject_id = "S001"
 if subject_id in calibrator.subject_profiles:
-    calibrated_prob = calibrator.calibrate(probability, subject_id)
+    calibrated_prob = calibrator.calibrate_prediction(probability, subject_id)
     print(f"Calibrated probability: {calibrated_prob:.3f}")
 '''
     
