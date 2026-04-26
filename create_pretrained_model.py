@@ -102,7 +102,7 @@ def create_pretrained_model(output_dir: str = "./models",
     
     print("\n3. Training subject calibrator...")
     # Train calibrator on all data
-    calibrator = SubjectCalibrator(config.model)
+    calibrator = SubjectCalibrator(classifier, config)
     
     # Create subject profiles (in real scenario, would use baseline videos)
     subject_profiles = {}
@@ -120,7 +120,7 @@ def create_pretrained_model(output_dir: str = "./models",
     
     print("\n4. Training explainability model...")
     # Train explainer on subset for efficiency
-    explainer = DeceptionExplainer(config.model)
+    explainer = DeceptionExplainer(classifier)
     
     # Use smaller subset for SHAP training (computationally expensive)
     if len(X_train) > 200:
@@ -128,8 +128,9 @@ def create_pretrained_model(output_dir: str = "./models",
     else:
         X_explain = X_train
     
-    print(f"   Training SHAP explainer on {len(X_explain)} samples...")
-    explainer.fit(classifier, X_explain)
+    print(f"   Initializing SHAP explainer...")
+    # Explainer initializes lazily
+    explainer._init_shap_explainer()
     
     print("\n5. Saving model and components...")
     # Save classifier
@@ -138,14 +139,12 @@ def create_pretrained_model(output_dir: str = "./models",
     print(f"   Classifier saved to: {model_path}")
     
     # Save calibrator
-    calibrator_path = os.path.join(output_dir, "subject_calibrator.pkl")
-    calibrator.save(calibrator_path)
+    calibrator_path = os.path.join(output_dir, "subject_calibrator.json")
+    calibrator.save_profiles(calibrator_path)
     print(f"   Calibrator saved to: {calibrator_path}")
     
-    # Save explainer
-    explainer_path = os.path.join(output_dir, "deception_explainer.pkl")
-    explainer.save(explainer_path)
-    print(f"   Explainer saved to: {explainer_path}")
+    # Explainer does not need saving
+    explainer_path = "N/A"
     
     # Save feature names
     feature_names_path = os.path.join(output_dir, "feature_names.json")
@@ -198,9 +197,12 @@ from src.model.calibration import SubjectCalibrator
 from src.explainability.explainer import DeceptionExplainer
 
 # Load model and components
-model = DeceptionClassifier.load("./models/deception_model.pkl")
-calibrator = SubjectCalibrator.load("./models/subject_calibrator.pkl")
-explainer = DeceptionExplainer.load("./models/deception_explainer.pkl")
+model = DeceptionClassifier()
+model.load("./models/deception_model.pkl")
+from src.utils.config import get_default_config
+calibrator = SubjectCalibrator(model, get_default_config())
+calibrator.load_profiles("./models/subject_calibrator.json")
+explainer = DeceptionExplainer(model)
 
 # Load feature names
 with open("./models/feature_names.json", "r") as f:
