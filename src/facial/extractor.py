@@ -20,16 +20,10 @@ class FacialFeatureExtractor:
         """Lazily load mediapipe to avoid global import errors."""
         try:
             import mediapipe as mp
-            if not hasattr(mp, 'solutions'):
-                # Try to force-load the solutions attribute which can be missing in some Colab builds
-                import mediapipe.python.solutions as solutions
-                mp.solutions = solutions
             return mp.solutions
-        except (ImportError, AttributeError) as e:
+        except Exception as e:
             raise ImportError(
-                "MediaPipe 'solutions' module not found. This is common in Google Colab if the "
-                "runtime hasn't been restarted after installation. Please go to 'Runtime' -> "
-                "'Restart session' and try again.\nOriginal error: " + str(e)
+                "MediaPipe 'solutions' module not found. Original error: " + str(e)
             )
 
     _LEFT_EYE = [33, 160, 158, 133, 153, 144]

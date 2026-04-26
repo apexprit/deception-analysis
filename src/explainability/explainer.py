@@ -87,7 +87,7 @@ class DeceptionExplainer:
             ValueError: If classifier is not trained.
         """
         if not classifier.is_fitted_:
-            raise ValueError("Classifier must be trained before creating explainer.")
+            warnings.warn("Classifier must be trained before creating explainer. Explainer will not work until trained.")
         
         self.classifier = classifier
         self._shap_explainer = None

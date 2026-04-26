@@ -37,6 +37,15 @@ async def startup_event():
         logger.info("Initializing Deception ML Pipeline...")
         config = get_default_config()
         pipeline = DeceptionPipeline(config)
+        
+        # Load the pre-trained model if it exists
+        model_path = os.path.join("models", "deception_model.pkl")
+        if os.path.exists(model_path):
+            pipeline.load_model(model_path)
+            logger.info("Pre-trained model loaded successfully.")
+        else:
+            logger.warning(f"No pre-trained model found at {model_path}. You must generate it first!")
+            
         logger.info("Pipeline initialized successfully.")
     except Exception as e:
         logger.error(f"Failed to initialize pipeline: {e}")
